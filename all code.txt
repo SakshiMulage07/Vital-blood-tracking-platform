@@ -1,0 +1,511 @@
+<?php
+session_start();
+if(!isset($_SESSION['login_admin'])){
+    header("Location:admin.php");
+    exit();
+}
+$admin_email = $_SESSION['login_admin'];
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vital Blood Tracking Platform - Home</title>
+    <style>
+        body {
+            background: url('bloo.jpg') no-repeat center center fixed;
+            background-size: cover;
+            font-family: Arial, sans-serif;
+            color: #fff;
+            text-align: center;
+            padding: 50px;
+        }
+        .container {
+            background: rgba(0,0,0,0.6);
+            padding: 30px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+        a.button {
+            display: inline-block;
+            padding: 12px 25px;
+            margin: 10px;
+            background: #ff4d4d;
+            color: #fff;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+        a.button:hover { background: #cc0000; transform: scale(1.05); }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Welcome to Mauli Blood Bank</h1>
+    <h3>Logged in as: <?php echo htmlspecialchars($admin_email); ?></h3>
+    <div>
+        <a href="form7.php" class="button">Donor Form</a>
+        <a href="rform7.php" class="button">Receiver Form</a>
+        <a href="search.php" class="button">Search</a>
+        <a href="logout7.php" class="button">Logout</a>
+    </div>
+</div>
+</body>
+</html>       home 7
+
+
+
+
+
+
+<?php
+session_start();
+include("config.php"); // Database connection
+
+// Redirect if already logged in
+if(isset($_SESSION['login_admin'])){
+    header("Location:home7.php");
+    exit();
+}
+
+if($_SERVER["REQUEST_METHOD"] == "POST") {
+    $mya_email = $_POST['a_email'];
+    $mya_pass = $_POST['a_pass'];
+    $a_pass = md5($mya_pass); // encrypted password
+
+    $sql = "SELECT a_id FROM blood.admin WHERE a_email='$mya_email' AND a_pass='$a_pass'";
+    $result = mysqli_query($conn, $sql);
+    $count = mysqli_num_rows($result);
+
+    if($count == 1){
+        $_SESSION['login_admin'] = $mya_email;
+        header("Location:admin_home.php");
+        exit();
+    } else {
+        $error = "Your login email or password is invalid";
+    }
+}
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Vital Blood Tracking Platform</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: url('bloo.jpg') no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+            padding: 0;
+            color: #fff;
+        }
+        .login-container {
+            background-color: rgba(0, 0, 0, 0.7);
+            width: 350px;
+            margin: 100px auto;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px #ff4d4d;
+            text-align: center;
+        }
+        h1 {
+            color: #ffcccc;
+            margin-bottom: 10px;
+        }
+        h3 {
+            color: #ff9999;
+            margin: 5px 0 20px 0;
+        }
+        input[type="text"], input[type="password"] {
+            width: 80%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: none;
+            font-size: 16px;
+        }
+        input[type="submit"] {
+            width: 85%;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            background-color: #ff4d4d;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        input[type="submit"]:hover {
+            background-color: #cc0000;
+            transform: scale(1.05);
+        }
+        p.error {
+            color: #ff8080;
+        }
+        hr {
+            border: 1px solid #ff4d4d;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>Vital Blood Tracking Platform</h1>
+        <h3><i>A BIT OF BLOOD CAN SAVE A LIFE!!!</i></h3>
+        <hr>
+        <h2>Login Here</h2>
+
+        <?php if(isset($error)) echo "<p class='error'>$error</p>"; ?>
+
+        <form action="" method="post">
+            <input type="text" name="a_email" placeholder="Enter email" required><br/>
+            <input type="password" name="a_pass" placeholder="Enter password" required><br/>
+            <input type="submit" value="Log In">
+        </form>
+    </div>
+</body>
+</html>   admin login
+
+
+
+
+
+
+
+<?php
+require_once("config.php"); // Make sure $conn is defined in config.php
+
+if($_SERVER["REQUEST_METHOD"] == "POST") {
+    $search = $_POST["searchname"];
+
+    // Prepare query to prevent SQL injection
+    $stmt = $conn->prepare("SELECT * FROM donor WHERE d_bloodgroup LIKE ?");
+    $like_search = "%".$search."%";
+    $stmt->bind_param("s", $like_search);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    echo "<center>";
+    echo "<table border='1'>
+        <tr>
+            <th>Donor Name</th>
+            <th>Donor Contact</th>
+            <th>Donor Email</th>
+            <th>Donor Address</th>
+            <th>Donor Gender</th>
+            <th>Donor Bloodgroup</th>
+            <th>Donor Weight</th>
+            <th>Donor Age</th>
+            <th>Donate Date</th>
+        </tr>";
+
+    while($row = $result->fetch_assoc()) {
+        echo "<tr>";
+        echo "<td>".htmlspecialchars($row['d_name'])."</td>";
+        echo "<td>".htmlspecialchars($row['d_cont'])."</td>";
+        echo "<td>".htmlspecialchars($row['d_email'])."</td>";
+        echo "<td>".htmlspecialchars($row['d_address'])."</td>";
+        echo "<td>".htmlspecialchars($row['d_gender'])."</td>";
+        echo "<td>".htmlspecialchars($row['d_bloodgroup'])."</td>";
+        echo "<td>".htmlspecialchars($row['d_weight'])."</td>";
+        echo "<td>".htmlspecialchars($row['d_age'])."</td>";
+        echo "<td>".htmlspecialchars($row['d_date'])."</td>";
+        echo "</tr>";
+    }
+    echo "</table>";
+
+    // Count total bags
+    $count_stmt = $conn->prepare("SELECT COUNT(*) AS count FROM donor WHERE d_bloodgroup LIKE ?");
+    $count_stmt->bind_param("s", $like_search);
+    $count_stmt->execute();
+    $count_result = $count_stmt->get_result();
+    $count_row = $count_result->fetch_assoc();
+
+    echo "<h2>The Total Bags Available Of Bloodgroup ".htmlspecialchars($search)." Is = ".$count_row['count']."</h2>";
+    echo "</center>";
+
+    $stmt->close();
+    $count_stmt->close();
+}
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search Donor - Mauli Blood Bank</title>
+    <style>
+        body {
+            background: url('bk55.png.jpg') no-repeat center center fixed;
+            background-size: cover;
+            font-family: Arial, sans-serif;
+            color: #fff;
+            text-align: center;
+        }
+        table {
+            border-style: solid;
+            border-width: 5px;
+            border-color: orange;
+            border-collapse: collapse;
+            margin: 20px auto;
+        }
+        th, td {
+            padding: 10px 15px;
+            border: 1px solid orange;
+        }
+        input[type="text"], input[type="submit"], button a {
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            margin: 10px 0;
+            font-size: 16px;
+        }
+        button a {
+            color: #fff;
+            text-decoration: none;
+        }
+        button {
+            background-color: #ff4d4d;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #cc0000;
+        }
+        h1, h2 {
+            margin: 10px 0;
+        }
+        hr {
+            border: 1px solid orange;
+            width: 50%;
+        }
+    </style>
+</head>
+<body>
+    <h1>Mauli Blood Bank</h1>
+    <hr>
+    <h2>Search By Blood Group:</h2>
+    <form action="" method="POST">
+        <input type="text" name="searchname" placeholder="Enter Blood Group"><br><br>
+        <input type="submit" name="search" value="Search"><br><br>
+        <button><a href="home7.php">Back To Home</a></button>
+    </form>
+</body>
+</html>   search code
+
+
+
+
+
+
+
+
+<?php
+session_start();
+if(!isset($_SESSION['login_admin'])){
+    header("Location:admin.php");
+    exit();
+}
+
+include("config.php");
+$admin_email = $_SESSION['login_admin'];
+
+// Get stats
+$donor_count = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) AS total FROM donor"))['total'];
+$receiver_count = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) AS total FROM receiver"))['total'];
+
+// Handle search
+$search_result = "";
+if(isset($_POST['search']) && !empty($_POST['searchname'])) {
+    $search = $_POST['searchname'];
+    $type = $_POST['search_type'];
+
+    if($type == "donor") {
+        $stmt = $conn->prepare("SELECT * FROM donor WHERE d_bloodgroup LIKE ?");
+        $like_search = "%".$search."%";
+        $stmt->bind_param("s", $like_search);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        $search_result .= "<h2>Donors with blood group '$search'</h2>";
+        $search_result .= "<table class='data-table'>
+        <tr><th>Name</th><th>Contact</th><th>Email</th><th>Address</th><th>Gender</th><th>Blood Group</th><th>Weight</th><th>Age</th><th>Date</th></tr>";
+        while($row = $result->fetch_assoc()) {
+            $search_result .= "<tr>
+                <td>".htmlspecialchars($row['d_name'])."</td>
+                <td>".htmlspecialchars($row['d_cont'])."</td>
+                <td>".htmlspecialchars($row['d_email'])."</td>
+                <td>".htmlspecialchars($row['d_address'])."</td>
+                <td>".htmlspecialchars($row['d_gender'])."</td>
+                <td>".htmlspecialchars($row['d_bloodgroup'])."</td>
+                <td>".htmlspecialchars($row['d_weight'])."</td>
+                <td>".htmlspecialchars($row['d_age'])."</td>
+                <td>".htmlspecialchars($row['d_date'])."</td>
+            </tr>";
+        }
+        $search_result .= "</table>";
+        $stmt->close();
+    } else {
+        $stmt = $conn->prepare("SELECT * FROM receiver WHERE r_bloodgroup LIKE ?");
+        $like_search = "%".$search."%";
+        $stmt->bind_param("s", $like_search);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        $search_result .= "<h2>Receivers with blood group '$search'</h2>";
+        $search_result .= "<table class='data-table'>
+        <tr><th>Name</th><th>Contact</th><th>Email</th><th>Address</th><th>Gender</th><th>Blood Group</th><th>Weight</th><th>Age</th><th>Date</th></tr>";
+        while($row = $result->fetch_assoc()) {
+            $search_result .= "<tr>
+                <td>".htmlspecialchars($row['r_name'])."</td>
+                <td>".htmlspecialchars($row['r_cont'])."</td>
+                <td>".htmlspecialchars($row['r_email'])."</td>
+                <td>".htmlspecialchars($row['r_address'])."</td>
+                <td>".htmlspecialchars($row['r_gender'])."</td>
+                <td>".htmlspecialchars($row['r_bloodgroup'])."</td>
+                <td>".htmlspecialchars($row['r_weight'])."</td>
+                <td>".htmlspecialchars($row['r_age'])."</td>
+                <td>".htmlspecialchars($row['r_date'])."</td>
+            </tr>";
+        }
+        $search_result .= "</table>";
+        $stmt->close();
+    }
+}
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Dashboard - Mauli Blood Bank</title>
+<style>
+body {
+    background: url('bloo.jpg') no-repeat center center fixed;
+    background-size: cover;
+    font-family: Arial, sans-serif;
+    color: #fff;
+    margin: 0;
+    padding: 0;
+}
+header {
+    background: rgba(0,0,0,0.7);
+    padding: 20px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    border-bottom: 2px solid #ff4d4d;
+}
+.container {
+    margin: 40px auto;
+    background: rgba(0,0,0,0.6);
+    padding: 30px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 1000px;
+    text-align: center;
+}
+.stats {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 40px; /* Added more spacing below stats */
+}
+.stat-box {
+    background: rgba(255,77,77,0.8);
+    padding: 20px 40px;
+    border-radius: 10px;
+    font-size: 18px;
+    font-weight: bold;
+}
+form {
+    margin: 50px 0; /* Increased spacing around search */
+}
+input[type="text"], select, input[type="submit"] {
+    padding: 10px;
+    border-radius: 5px;
+    border: none;
+    font-size: 16px;
+    margin: 5px;
+}
+input[type="submit"] {
+    background-color: #ff4d4d;
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+}
+input[type="submit"]:hover {
+    background-color: #cc0000;
+}
+a.button {
+    display: inline-block;
+    padding: 10px 25px;
+    margin: 10px;
+    background: #ff4d4d;
+    color: white;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: 0.3s;
+}
+a.button:hover {
+    background: #cc0000;
+    transform: scale(1.05);
+}
+.data-table {
+    border-collapse: collapse;
+    width: 100%;
+    color: #fff;
+}
+.data-table th, .data-table td {
+    border: 1px solid #ff4d4d;
+    padding: 8px;
+}
+.data-table th {
+    background-color: #ff4d4d;
+}
+footer {
+    text-align: center;
+    color: #ccc;
+    margin-top: 30px;
+}
+</style>
+</head>
+<body>
+
+<header>Admin Dashboard - Mauli Blood Bank</header>
+
+<div class="container">
+    <h2>Welcome, <?php echo htmlspecialchars($admin_email); ?></h2>
+    <div class="stats">
+        <div class="stat-box">Total Donors: <?php echo $donor_count; ?></div>
+        <div class="stat-box">Total Receivers: <?php echo $receiver_count; ?></div>
+    </div>
+
+    <h3>Search by Blood Group</h3>
+    <form method="POST">
+        <input type="text" name="searchname" placeholder="Enter blood group (e.g., O+)" required>
+        <select name="search_type">
+            <option value="donor">Donor</option>
+            <option value="receiver">Receiver</option>
+        </select>
+        <input type="submit" name="search" value="Search">
+    </form>
+
+    <?php echo $search_result; ?>
+
+    <div style="margin-top:30px;">
+        <a href="logout7.php" class="button">Logout</a>
+    </div>
+</div>
+
+<footer>
+    &copy; <?php echo date("Y"); ?> Mauli Blood Bank | Admin Panel
+</footer>
+
+</body>
+</html>
+    admin home
+
